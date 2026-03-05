@@ -25,7 +25,7 @@
     options = [ "defaults" "nofail" ];  # nofail prevents boot failure if drive is missing
   };
 
-  # networking.hostName = "nixos"; # Define your hostname.
+  # Hostname is set in hosts/thinkpad/default.nix
 
   # Configure network connections interactively with nmcli or nmtui.
   networking.networkmanager.enable = true;
