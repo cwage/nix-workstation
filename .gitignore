@@ -1,0 +1,15 @@
+# Result symlinks from nix-build
+result
+result-*
+
+# Secrets (if any)
+secrets/
+*.secret
+
+# Editor backups
+*~
+\#*\#
+.#*
+
+# Claude Code local settings
+.claude/
