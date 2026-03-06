@@ -157,6 +157,7 @@
     nmap
     socat
     wireguard-tools
+    nfs-utils
     plocate
 
     # Gaming
@@ -212,6 +213,11 @@
       ${pkgs.systemd}/bin/resolvectl domain wg0 lan.quietlife.net
     '';
     postDown = ''
+      # Lazy-unmount any NFS shares under /mnt/nas before tunnel goes away
+      for mnt in $(${pkgs.gawk}/bin/awk -v base="/mnt/nas/" '$2 ~ "^"base {print $2}' /proc/mounts); do
+        ${pkgs.util-linux}/bin/logger -t nas-wg-unmount "WireGuard down: lazy-unmounting $mnt"
+        ${pkgs.util-linux}/bin/umount -l "$mnt" 2>/dev/null
+      done
       ${pkgs.systemd}/bin/resolvectl revert wg0
     '';
 
@@ -222,6 +228,20 @@
       persistentKeepalive = 25;
     }];
   };
+
+  # NFS client + autofs (NAS shares over WireGuard tunnel)
+  services.autofs = {
+    enable = true;
+    autoMaster = ''
+      /mnt/nas /etc/auto.nas --timeout=300
+    '';
+  };
+
+  environment.etc."auto.nas".text = ''
+    # Wildcard map: /mnt/nas/<share> → 10.10.15.4:/volume1/<share>
+    # Soft mount with aggressive timeouts for roaming laptop use
+    * -fstype=nfs,soft,timeo=30,retrans=2,actimeo=3 10.10.15.4:/volume1/&
+  '';
 
   # Firewall (NixOS iptables-based, replaces ufw)
   networking.firewall = {
