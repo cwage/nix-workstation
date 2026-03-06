@@ -204,7 +204,7 @@
 
   # WireGuard VPN (client connection to homelab)
   networking.wg-quick.interfaces.wg0 = {
-    address = [ "10.10.16.4/24" ];
+    address = [ "10.10.16.4/32" ];
     privateKeyFile = "/etc/wireguard/wg0.key";
     dns = [ "10.10.15.1" ];
 
