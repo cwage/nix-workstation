@@ -30,6 +30,9 @@
   # Configure network connections interactively with nmcli or nmtui.
   networking.networkmanager.enable = true;
 
+  # systemd-resolved for DNS (required for WireGuard split-DNS via resolvectl)
+  services.resolved.enable = true;
+
   # Set your time zone.
   time.timeZone = "America/Chicago";
 
@@ -198,6 +201,27 @@
 
   # Steam
   programs.steam.enable = true;
+
+  # WireGuard VPN (client connection to homelab)
+  networking.wg-quick.interfaces.wg0 = {
+    address = [ "10.10.16.4/24" ];
+    privateKeyFile = "/etc/wireguard/wg0.key";
+    dns = [ "10.10.15.1" ];
+
+    postUp = ''
+      ${pkgs.systemd}/bin/resolvectl domain wg0 lan.quietlife.net
+    '';
+    postDown = ''
+      ${pkgs.systemd}/bin/resolvectl revert wg0
+    '';
+
+    peers = [{
+      publicKey = "CzGpUVSwJah7pXfkWi2ZvpYdtYQWgFM46qvzOSYy038=";
+      endpoint = "h.quietlife.net:51923";
+      allowedIPs = [ "10.10.15.0/24" "10.10.16.0/24" ];
+      persistentKeepalive = 25;
+    }];
+  };
 
   # Firewall (NixOS iptables-based, replaces ufw)
   networking.firewall = {
