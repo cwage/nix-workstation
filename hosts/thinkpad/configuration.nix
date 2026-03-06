@@ -139,7 +139,6 @@
     # Apps
     emacs
     signal-desktop
-    slack
 
     # Media
     ffmpeg
