@@ -2,8 +2,8 @@
   "nodes": {
     "dotfiles": {
       "locked": {
-        "lastModified": 1772744178,
-        "narHash": "sha256-Yq0kptpSiwWC8FQofD2BRhtc8/fEHWdFmosrGGKAAW0=",
+        "lastModified": 1772830539,
+        "narHash": "sha256-lSSwaI8NYdNCPjv73RayBCZ+I5ZVSwSnimDcLz5Bc/g=",
         "path": "/home/cwage/git/cwage/dotfiles",
         "type": "path"
       },

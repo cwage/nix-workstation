@@ -42,7 +42,7 @@ Edit files in `~/git/cwage/dotfiles`, then update the flake lock and rebuild:
 
 ```bash
 cd ~/git/cwage/nix-workstation
-nix flake update dotfiles --extra-experimental-features 'nix-command flakes'
+nix flake update dotfiles
 sudo nixos-rebuild switch --flake .#thinkpad
 ```
 
