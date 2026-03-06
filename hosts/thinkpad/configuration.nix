@@ -79,7 +79,7 @@
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.cwage = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "networkmanager" "docker" ];
+    extraGroups = [ "wheel" "audio" "video" "networkmanager" ];
     packages = with pkgs; [
       tree
     ];
@@ -200,8 +200,11 @@
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   xdg.portal.config.common.default = "*";
 
-  # Docker (includes Compose v2 plugin, containerd, buildx)
-  virtualisation.docker.enable = true;
+  # Docker — rootless mode (daemon runs as user, no root-equivalent group)
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
 
   # Steam
   programs.steam.enable = true;
