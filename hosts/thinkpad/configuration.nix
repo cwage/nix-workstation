@@ -56,10 +56,12 @@
   services.displayManager.defaultSession = "none+xsession";
 
   # Enable sound with pipewire
+  security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
     pulse.enable = true;
     alsa.enable = true;
+    alsa.support32Bit = true;
   };
 
   # Enable touchpad support
@@ -67,6 +69,9 @@
 
   # Power management (battery info for xfce4-power-manager)
   services.upower.enable = true;
+
+  # UDisks2 (required for udiskie automount/tray)
+  services.udisks2.enable = true;
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.cwage = {
@@ -76,6 +81,9 @@
       tree
     ];
   };
+
+  # Enable flakes and the new nix CLI
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Allow non-free
   nixpkgs.config.allowUnfree = true;
@@ -93,11 +101,11 @@
     ripgrep
 
     # X11 / Xorg tools
-    xorg.xkbcomp
-    xorg.xrdb
-    xorg.xsetroot
-    xorg.setxkbmap
-    xorg.xauth
+    xkbcomp
+    xrdb
+    xsetroot
+    setxkbmap
+    xauth
 
     # Window manager and session
     awesome
@@ -111,25 +119,58 @@
     # Desktop utilities
     dunst                          # notifications
     networkmanagerapplet           # nm-applet
-    xfce.xfce4-power-manager
-    xfce.xfconf                    # settings daemon for xfce4-power-manager
-    volumeicon
+    xfce4-power-manager
+    xfconf                         # settings daemon for xfce4-power-manager
+    volumeicon                     # systray volume icon
+    pavucontrol                    # PulseAudio volume control GUI
+    brightnessctl                  # backlight control
     polkit_gnome                   # policykit auth agent
     udiskie                        # automount
     arandr                         # xrandr GUI
     scrot                          # screenshots
     xclip                          # clipboard
-    volumeicon                     # systray volume icon
+
+    # Browser
+    brave
 
     # Apps
     emacs
     signal-desktop
+    slack
 
-    # Your other tools
+    # Media
+    ffmpeg
+    mpv
+    mplayer
+    pulsemixer
+    mpd
+    mpc
+
+    # Image tools
+    gthumb
+    imagemagick
+
+    # Network / system tools
+    nmap
+    socat
+    wireguard-tools
+    plocate
+
+    # Gaming
+    dotnet-runtime_8
+
+    # Utilities
     btop
     w3m
     mutt
     gh
+    pass
+    swaks
+    ddgr
+    yt-dlp
+    exfatprogs
+    grip
+    pinentry-gnome3
   ];
 
   # Enable gnome-keyring for secrets (optional, used by some apps)
@@ -146,14 +187,24 @@
     enableSSHSupport = false;  # You use ssh-agent in .xsession
   };
 
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  # OpenSSH daemon
+  services.openssh.enable = true;
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  # Flatpak (for apps like ncspot, Zoom)
+  services.flatpak.enable = true;
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  xdg.portal.config.common.default = "*";
+
+  # Steam
+  programs.steam.enable = true;
+
+  # Firewall (NixOS iptables-based, replaces ufw)
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 22 ];      # SSH
+    # allowedUDPPorts = [ ];
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
