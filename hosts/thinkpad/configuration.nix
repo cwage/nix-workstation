@@ -79,7 +79,7 @@
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.cwage = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "networkmanager" ];
+    extraGroups = [ "wheel" "audio" "video" "networkmanager" "docker" ];
     packages = with pkgs; [
       tree
     ];
@@ -199,6 +199,9 @@
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   xdg.portal.config.common.default = "*";
+
+  # Docker (includes Compose v2 plugin, containerd, buildx)
+  virtualisation.docker.enable = true;
 
   # Steam
   programs.steam.enable = true;
