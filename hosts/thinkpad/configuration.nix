@@ -200,6 +200,12 @@
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   xdg.portal.config.common.default = "*";
 
+  # Docker — rootless mode (daemon runs as user, no root-equivalent group)
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
+
   # Steam
   programs.steam.enable = true;
 
