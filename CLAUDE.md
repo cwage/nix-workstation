@@ -18,8 +18,29 @@ sudo nixos-rebuild switch --flake .#thinkpad
 ## Migration Notes (from ansible)
 - **No music production.** The old ansible config had JACK/ardour/fluidsynth for audio production — this is no longer a goal. Standard desktop audio (pipewire + pulse + alsa) is sufficient.
 - **Build dependencies (libssl-dev, etc.) belong in per-project devShells**, not in global system packages.
-- **Pinned binaries** (Bitwarden CLI, VS Launcher, r2modman, Codex, Proton Mail Bridge) are handled separately from standard system packages.
+- **Pinned binaries** (Bitwarden CLI, VS Launcher, r2modman, Proton Mail Bridge) are handled separately from standard system packages.
 - **ufw is unnecessary** — NixOS has networking.firewall built-in.
+
+## Updating Packages
+All packages are pinned to a specific nixpkgs commit via `flake.lock`. To update:
+
+```bash
+# Update all flake inputs (nixpkgs, home-manager, dotfiles)
+nix flake update
+
+# Or update only nixpkgs
+nix flake update nixpkgs
+
+# Then rebuild to apply
+sudo nixos-rebuild switch --flake .#thinkpad
+```
+
+Nothing changes on your running system until you rebuild. If something breaks after a rebuild:
+```bash
+sudo nixos-rebuild switch --rollback
+```
+
+There is no way to update a single package independently — all packages come from the same pinned nixpkgs commit. If you need to pin a specific version of one package ahead of nixpkgs, use an overlay in `flake.nix` to override that package's version and hash.
 
 ## Conventions
 - Keep changes scoped and modular; avoid monolithic configs.

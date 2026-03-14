@@ -98,6 +98,8 @@
     tmux
     mosh
     claude-code
+    codex
+    opencode
     git
     curl
     unzip
