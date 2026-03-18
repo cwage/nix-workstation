@@ -10,7 +10,7 @@
     };
 
     dotfiles = {
-      url = "path:/home/cwage/git/cwage/dotfiles";
+      url = "github:cwage/dotfiles";
       flake = true;
     };
   };
