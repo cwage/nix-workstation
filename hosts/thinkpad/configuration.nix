@@ -174,7 +174,7 @@
     ddgr
     yt-dlp
     exfatprogs
-    grip
+    python3Packages.grip
     pinentry-gnome3
   ];
 
