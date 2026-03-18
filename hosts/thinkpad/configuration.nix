@@ -10,20 +10,13 @@
       ./hardware-configuration.nix
     ];
 
-  # USB boot crap
-
+  # Bootloader (GRUB with EFI on NVMe)
   boot.loader.grub.enable = true;
   boot.loader.grub.efiSupport = true;
   boot.loader.grub.device = "nodev";
-  boot.loader.grub.efiInstallAsRemovable = true;
-  boot.loader.efi.canTouchEfiVariables = false;
-
-  # Mount the Ubuntu install on the NVMe for reference
-  fileSystems."/mnt/ubuntu" = {
-    device = "/dev/disk/by-uuid/241f5c57-9de4-4b42-a61f-cb8106de2fa0";
-    fsType = "ext4";
-    options = [ "defaults" "nofail" ];  # nofail prevents boot failure if drive is missing
-  };
+  boot.loader.efi.efiSysMountPoint = "/boot/efi";
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.grub.useOSProber = true;
 
   # Hostname is set in hosts/thinkpad/default.nix
 

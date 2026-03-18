@@ -2,14 +2,17 @@
   "nodes": {
     "dotfiles": {
       "locked": {
-        "lastModified": 1773511598,
-        "narHash": "sha256-EbD5BSBoFAkXdqJ6PwQEYddHLZ9BjRGG9jwCa9dTvCw=",
-        "path": "/home/cwage/git/cwage/dotfiles",
-        "type": "path"
+        "lastModified": 1773862967,
+        "narHash": "sha256-9pd2KhiX4Z8XRFJVPyP9JjBIMKHzVbOhlQ+nJ5hBlVA=",
+        "owner": "cwage",
+        "repo": "dotfiles",
+        "rev": "45bfe1033c6eb01cabf2de418111b74eab04ac6b",
+        "type": "github"
       },
       "original": {
-        "path": "/home/cwage/git/cwage/dotfiles",
-        "type": "path"
+        "owner": "cwage",
+        "repo": "dotfiles",
+        "type": "github"
       }
     },
     "home-manager": {
