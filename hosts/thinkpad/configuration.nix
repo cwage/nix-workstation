@@ -81,6 +81,13 @@
   # Enable flakes and the new nix CLI
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # Automatic Nix store garbage collection (weekly, keep last 30 days)
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+
   # Allow non-free
   nixpkgs.config.allowUnfree = true;
 
