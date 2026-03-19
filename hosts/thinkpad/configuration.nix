@@ -177,6 +177,9 @@
   # Polkit for privilege escalation dialogs
   security.polkit.enable = true;
 
+  # nix-index with prebuilt database + comma (run any nixpkgs binary with ", cmd")
+  programs.nix-index-database.comma.enable = true;
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;

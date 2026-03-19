@@ -13,14 +13,20 @@
       url = "github:cwage/dotfiles";
       flake = true;
     };
+
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, dotfiles, ... }:
+  outputs = { self, nixpkgs, home-manager, dotfiles, nix-index-database, ... }:
   {
     nixosConfigurations.thinkpad = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
         ./hosts/thinkpad
+        nix-index-database.nixosModules.nix-index
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
