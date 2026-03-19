@@ -63,8 +63,9 @@
   # Enable touchpad support
   services.libinput.enable = true;
 
-  # Power management (battery info for xfce4-power-manager)
+  # Power management
   services.upower.enable = true;
+  services.logind.settings.Login.HandleLidSwitch = "suspend";
 
   # UDisks2 (required for udiskie automount/tray)
   services.udisks2.enable = true;
@@ -124,8 +125,7 @@
     # Desktop utilities
     dunst                          # notifications
     networkmanagerapplet           # nm-applet
-    xfce4-power-manager
-    xfconf                         # settings daemon for xfce4-power-manager
+    cbatticon                      # lightweight battery tray icon
     volumeicon                     # systray volume icon
     pavucontrol                    # PulseAudio volume control GUI
     brightnessctl                  # backlight control
