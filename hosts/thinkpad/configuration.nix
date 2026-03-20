@@ -105,6 +105,7 @@
     curl
     unzip
     ripgrep
+    nvd                              # nix version diff (compare system profiles)
 
     # X11 / Xorg tools
     xkbcomp

@@ -62,6 +62,41 @@ sudo nixos-rebuild test --flake .#thinkpad
 sudo nixos-rebuild switch --flake .#thinkpad
 ```
 
+## Updating packages
+
+All packages are pinned to a specific nixpkgs commit via `flake.lock`. Nothing changes on your running system until you rebuild.
+
+```bash
+# Update all flake inputs (nixpkgs, home-manager, dotfiles)
+nix flake update
+
+# Or update only nixpkgs (keeps other inputs pinned)
+nix flake update nixpkgs
+```
+
+You can't update a single package independently — they all come from the same pinned nixpkgs commit. If you need a specific version of one package ahead of nixpkgs, use an overlay in `flake.nix`.
+
+### Previewing what changed
+
+After updating `flake.lock`, build without activating, then use `nvd` to see a version diff (similar to `apt-get -s upgrade`):
+
+```bash
+nixos-rebuild build --flake .#thinkpad
+nvd diff /run/current-system result
+```
+
+If you're happy with the changes:
+
+```bash
+sudo nixos-rebuild switch --flake .#thinkpad
+```
+
+To roll back if something breaks:
+
+```bash
+sudo nixos-rebuild switch --rollback
+```
+
 ## Repo structure
 
 ```
