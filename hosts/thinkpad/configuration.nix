@@ -161,6 +161,7 @@
     wireguard-tools
     nfs-utils
     plocate
+    passt                            # pasta networking for rootless Docker
 
     # Gaming
     dotnet-runtime_8
@@ -206,9 +207,16 @@
   xdg.portal.config.common.default = "*";
 
   # Docker — rootless mode (daemon runs as user, no root-equivalent group)
+  # Uses pasta (passt) instead of slirp4netns for container networking so that
+  # the host's DNS stack (systemd-resolved, including WireGuard split-DNS for
+  # lan.quietlife.net) works transparently inside containers.
   virtualisation.docker.rootless = {
     enable = true;
     setSocketVariable = true;
+  };
+  systemd.user.services.docker = {
+    environment.DOCKERD_ROOTLESS_ROOTLESSKIT_NET = "pasta";
+    path = [ pkgs.passt ];
   };
 
   # Steam
