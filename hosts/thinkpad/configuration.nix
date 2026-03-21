@@ -106,6 +106,7 @@
     unzip
     ripgrep
     nvd                              # nix version diff (compare system profiles)
+    gnumake                          # make for Makefiles (no full toolchain)
 
     # X11 / Xorg tools
     xkbcomp
