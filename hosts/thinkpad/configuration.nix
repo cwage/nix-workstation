@@ -60,6 +60,9 @@
     alsa.support32Bit = true;
   };
 
+  # RTL-SDR hardware support (udev rules + blacklist DVB kernel module)
+  hardware.rtl-sdr.enable = true;
+
   # Enable touchpad support
   services.libinput.enable = true;
 
@@ -73,7 +76,7 @@
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.cwage = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "networkmanager" ];
+    extraGroups = [ "wheel" "audio" "video" "networkmanager" "plugdev" ];
     packages = with pkgs; [
       tree
     ];
@@ -163,6 +166,15 @@
     nfs-utils
     plocate
     passt                            # pasta networking for rootless Docker
+
+    # SDR
+    rtl-sdr
+    gqrx
+    gnuradio
+    soapysdr-with-plugins
+    rtl_433
+    multimon-ng
+    sox
 
     # Gaming
     dotnet-runtime_8
@@ -266,7 +278,7 @@
   # Firewall (NixOS iptables-based, replaces ufw)
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 22 ];      # SSH
+    allowedTCPPorts = [ 22 1234 ]; # SSH, rtl_tcp
     # allowedUDPPorts = [ ];
   };
 
