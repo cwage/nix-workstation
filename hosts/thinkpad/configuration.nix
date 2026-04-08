@@ -60,8 +60,9 @@
     alsa.support32Bit = true;
   };
 
-  # RTL-SDR hardware support (udev rules + blacklist DVB kernel module)
+  # SDR hardware support (udev rules, plugdev group, kernel module blacklists)
   hardware.rtl-sdr.enable = true;
+  hardware.hackrf.enable = true;
 
   # Enable touchpad support
   services.libinput.enable = true;
@@ -168,6 +169,7 @@
     passt                            # pasta networking for rootless Docker
 
     # SDR
+    hackrf
     rtl-sdr
     gqrx
     gnuradio
