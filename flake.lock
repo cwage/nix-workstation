@@ -2,11 +2,11 @@
   "nodes": {
     "dotfiles": {
       "locked": {
-        "lastModified": 1774639036,
-        "narHash": "sha256-8r7kl4DiWXBcE5x9Zxthq7RGDTKiaXRKHif8PMAquw4=",
+        "lastModified": 1775599277,
+        "narHash": "sha256-K75q1z3PPUOmUMrJWKOOSp+yvAqhZJYFOm6Gh/RH4o0=",
         "owner": "cwage",
         "repo": "dotfiles",
-        "rev": "e69c874ccfa18e6f872dd83487760c04609a47d1",
+        "rev": "54044af6534323b70f4075f1669a40ee488fc9a9",
         "type": "github"
       },
       "original": {
