@@ -4,6 +4,16 @@
 
 { config, lib, pkgs, ... }:
 
+let
+  androidSdk = (pkgs.androidenv.composeAndroidPackages {
+    platformVersions = [ "28" "33" "35" ];
+    buildToolsVersions = [ "35.0.0" ];
+    includeEmulator = true;
+    includeSystemImages = true;
+    systemImageTypes = [ "google_apis" ];
+    abiVersions = [ "x86_64" ];
+  }).androidsdk;
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -77,7 +87,7 @@
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.cwage = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "networkmanager" "plugdev" ];
+    extraGroups = [ "wheel" "audio" "video" "networkmanager" "plugdev" "kvm" ];
     packages = with pkgs; [
       tree
     ];
@@ -95,6 +105,7 @@
 
   # Allow non-free
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.android_sdk.accept_license = true;
 
   # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
@@ -178,6 +189,12 @@
     multimon-ng
     sox
 
+    # Android development
+    jdk21
+    androidSdk
+    android-tools
+    maestro
+
     # Gaming
     dotnet-runtime_8
 
@@ -194,6 +211,10 @@
     python3Packages.grip
     pinentry-gnome3
   ];
+
+  # Android: ANDROID_SDK_ROOT for emulator/gradle (adb udev handled by systemd 258)
+  environment.variables.ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
+  environment.variables.JAVA_HOME = "${pkgs.jdk21}";
 
   # Enable gnome-keyring for secrets (optional, used by some apps)
   services.gnome.gnome-keyring.enable = true;
