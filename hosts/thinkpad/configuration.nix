@@ -28,7 +28,7 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.useOSProber = true;
 
-  # Disable the PC speaker beep (the "blip" on backspace-at-start-of-line, etc.)
+  # Disable the legacy PC speaker / TTY beep.
   boot.blacklistedKernelModules = [ "pcspkr" "snd_pcsp" ];
 
   # Hostname is set in hosts/thinkpad/default.nix
