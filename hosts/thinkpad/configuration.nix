@@ -28,6 +28,9 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.useOSProber = true;
 
+  # Disable the PC speaker beep (the "blip" on backspace-at-start-of-line, etc.)
+  boot.blacklistedKernelModules = [ "pcspkr" "snd_pcsp" ];
+
   # Hostname is set in hosts/thinkpad/default.nix
 
   # Configure network connections interactively with nmcli or nmtui.
@@ -68,6 +71,19 @@ in
     pulse.enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
+
+    # Disable the X11 bell module. PipeWire's upstream pipewire.conf loads
+    # libpipewire-module-x11-bell with `condition = [ { module.x11.bell = !false } ]`,
+    # so setting this context property to false makes the conditional skip the load.
+    # Without this, every X11 BellNotify event (e.g. readline bell-on-error over SSH)
+    # gets caught by the module and played as freedesktop bell.oga via libcanberra
+    # through the default audio sink — independent of `xset b`, pcspkr blacklisting,
+    # xterm bell settings, or anything else you'd normally tweak.
+    extraConfig.pipewire."92-no-x11-bell" = {
+      "context.properties" = {
+        "module.x11.bell" = false;
+      };
+    };
   };
 
   # SDR hardware support (udev rules, plugdev group, kernel module blacklists)
