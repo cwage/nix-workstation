@@ -31,9 +31,11 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.cwage = { pkgs, ... }: {
+          home-manager.users.cwage = { pkgs, config, ... }: {
             imports = [ dotfiles.homeManagerModules.default ];
             home.stateVersion = "24.05";
+            home.file.".claude/CLAUDE.md".source =
+              config.lib.file.mkOutOfStoreSymlink "/home/cwage/git/cwage/ai/AGENT.md";
           };
         }
       ];
