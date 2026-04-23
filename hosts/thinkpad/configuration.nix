@@ -195,6 +195,16 @@ in
     plocate
     passt                            # pasta networking for rootless Docker
 
+    # Sandboxing / isolation
+    # Experimenting with confining LLM coding agents (Claude Code, codex,
+    # opencode) against prompt-injection threats when working in untrusted repos.
+    bubblewrap                       # unprivileged namespace sandbox
+    firejail                         # profile-based sandbox wrapper
+    nsjail                           # namespaces + seccomp + cgroups in one tool
+    podman-compose                   # rootless container compose (podman enabled below)
+    mitmproxy                        # HTTPS proxy for allowlisting outbound API traffic
+    strace                           # syscall tracer (useful for building seccomp profiles)
+
     # SDR
     hackrf
     rtl-sdr
@@ -269,6 +279,13 @@ in
   systemd.user.services.docker = {
     environment.DOCKERD_ROOTLESS_ROOTLESSKIT_NET = "pasta";
     path = [ pkgs.passt ];
+  };
+
+  # Podman — alternative rootless container runtime, for sandboxing experiments.
+  # dockerCompat is off because rootless docker above already owns that alias.
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = false;
   };
 
   # Steam
