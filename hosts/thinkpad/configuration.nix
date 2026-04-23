@@ -194,6 +194,7 @@ in
     nfs-utils
     plocate
     passt                            # pasta networking for rootless Docker
+    nftables                         # nft CLI for inspecting firewall ruleset
 
     # Sandboxing / isolation
     # Experimenting with confining LLM coding agents (Claude Code, codex,
@@ -204,6 +205,8 @@ in
     podman-compose                   # rootless container compose (podman enabled below)
     mitmproxy                        # HTTPS proxy for allowlisting outbound API traffic
     strace                           # syscall tracer (useful for building seccomp profiles)
+    libseccomp                       # seccomp library + scmp_sys_resolver CLI
+    rubyPackages.seccomp-tools       # seccomp BPF dumping/analysis (david942j)
 
     # SDR
     hackrf
