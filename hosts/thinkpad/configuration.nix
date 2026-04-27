@@ -13,6 +13,25 @@ let
     systemImageTypes = [ "google_apis" ];
     abiVersions = [ "x86_64" ];
   }).androidsdk;
+
+  agentpen = pkgs.callPackage ../../pkgs/agentpen.nix { };
+
+  # Shadow `claude` / `codex` in PATH with agentpen wrappers. The wrappers
+  # reference the real binaries by absolute store path so agentpen's own
+  # PATH lookup can't recurse into the wrapper. Sibling `*-raw` shims expose
+  # the unwrapped binaries for when sandboxing isn't wanted.
+  wrapAgent = name: realPath: pkgs.writeShellScriptBin name ''
+    exec ${agentpen}/bin/agentpen --agent ${name} ${realPath} "$@"
+  '';
+  rawAgent = name: realPath: pkgs.writeShellScriptBin "${name}-raw" ''
+    exec ${realPath} "$@"
+  '';
+  agentWrappers = [
+    (wrapAgent "claude" "${pkgs.claude-code}/bin/claude")
+    (rawAgent  "claude" "${pkgs.claude-code}/bin/claude")
+    (wrapAgent "codex"  "${pkgs.codex}/bin/codex")
+    (rawAgent  "codex"  "${pkgs.codex}/bin/codex")
+  ];
 in
 {
   imports =
@@ -129,8 +148,7 @@ in
     vim
     tmux
     mosh
-    claude-code
-    codex
+    agentpen
     opencode
     git
     curl
@@ -239,7 +257,7 @@ in
     exfatprogs
     python3Packages.grip
     pinentry-gnome3
-  ];
+  ] ++ agentWrappers;
 
   # Android: ANDROID_SDK_ROOT for emulator/gradle (adb udev handled by systemd 258)
   environment.variables.ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
