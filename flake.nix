@@ -36,6 +36,8 @@
             home.stateVersion = "24.05";
             home.file.".claude/CLAUDE.md".source =
               config.lib.file.mkOutOfStoreSymlink "/home/cwage/git/cwage/ai/AGENT.md";
+            home.file.".codex/AGENTS.md".source =
+              config.lib.file.mkOutOfStoreSymlink "/home/cwage/git/cwage/ai/AGENT.md";
           };
         }
       ];
