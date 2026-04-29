@@ -154,6 +154,8 @@ in
     curl
     unzip
     ripgrep
+    jq
+    openssl
     nvd                              # nix version diff (compare system profiles)
     gnumake                          # make for Makefiles (no full toolchain)
 
@@ -207,6 +209,8 @@ in
 
     # Network / system tools
     nmap
+    mtr
+    dnsutils                         # dig, nslookup, etc.
     socat
     wireguard-tools
     nfs-utils
