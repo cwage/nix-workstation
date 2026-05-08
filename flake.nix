@@ -31,7 +31,7 @@
     };
 
     nixosConfigurations.thinkpad = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
+      inherit system;
       modules = [
         ./hosts/thinkpad
         nix-index-database.nixosModules.nix-index
