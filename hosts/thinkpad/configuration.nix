@@ -234,7 +234,7 @@ in
     hackrf
     rtl-sdr
     gqrx
-    gnuradio
+    # gnuradio  # disabled: pyqtgraph 0.14.0 SVGExporter tests fail in current nixpkgs
     soapysdr-with-plugins
     rtl_433
     multimon-ng
