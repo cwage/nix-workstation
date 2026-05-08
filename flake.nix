@@ -21,7 +21,15 @@
   };
 
   outputs = { self, nixpkgs, home-manager, dotfiles, nix-index-database, ... }:
+  let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+  in
   {
+    packages.${system} = {
+      agentpen = pkgs.callPackage ./pkgs/agentpen.nix { };
+    };
+
     nixosConfigurations.thinkpad = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [

@@ -157,6 +157,7 @@ in
     jq
     openssl
     nvd                              # nix version diff (compare system profiles)
+    nix-update                       # bump version + recompute hashes for pkgs/*.nix
     gnumake                          # make for Makefiles (no full toolchain)
 
     # X11 / Xorg tools

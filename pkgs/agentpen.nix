@@ -2,13 +2,13 @@
 
 buildGoModule rec {
   pname = "agentpen";
-  version = "0.2.1";
+  version = "0.2.2";
 
   src = fetchFromGitHub {
     owner = "cwage";
     repo = "agentpen";
     rev = "v${version}";
-    hash = "sha256-JHitzosD6lsAoUq2gPwgEA2PqcOvB9s3z2ljFogR2vc=";
+    hash = "sha256-07plXSLIYHYclqRfxcg2wyHAjGvkrkBXbmge3c4aq0k=";
   };
 
   vendorHash = "sha256-LXR8/S1x5FOxgcp8uXppc2foxwHZq6KANA3WCtX0MoE=";

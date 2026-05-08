@@ -97,6 +97,49 @@ To roll back if something breaks:
 sudo nixos-rebuild switch --rollback
 ```
 
+## Updating local packages (`pkgs/`)
+
+Packages defined in `pkgs/` are pinned to an upstream version with one or more content hashes. These hashes are **not** the same as anything GitHub displays — Nix unpacks the source and re-hashes it in NAR (Nix archive) format, so you can't just paste a release SHA from a GitHub release page.
+
+Most packages have at least:
+
+- A source `hash` inside `fetchFromGitHub` / `fetchurl` / etc. — hash of the unpacked source tree.
+- A dependency-closure hash, named per ecosystem:
+  - Go: `vendorHash` (vendored Go modules)
+  - Rust: `cargoHash` / `cargoLock`
+  - Node: `npmDepsHash`, `pnpmDeps.hash`, `yarnDeps.hash`
+  - Python: varies by builder
+
+The dependency-closure hash changes whenever the lockfile (`go.sum`, `Cargo.lock`, etc.) changes upstream, even across patch releases.
+
+### Bumping a version
+
+Two workflows, pick whichever:
+
+**1. `nix-update` (easiest):** automates version bump + hash recompute.
+
+```bash
+nix-update --flake --version 0.2.2 agentpen
+```
+
+**2. Fake-hash dance (manual, always works):** edit the package file, bump `version`, replace each hash with `lib.fakeHash` (add `lib` to the function args if needed), then rebuild. Nix will fail with the actual hash in the error message — paste it back in. Repeat for each hash field.
+
+```nix
+src = fetchFromGitHub {
+  # ...
+  rev = "v${version}";
+  hash = lib.fakeHash;   # rebuild, copy real hash from error, paste here
+};
+
+vendorHash = lib.fakeHash;  # same dance
+```
+
+Then rebuild as normal:
+
+```bash
+sudo nixos-rebuild switch --flake .#thinkpad
+```
+
 ## Repo structure
 
 ```
