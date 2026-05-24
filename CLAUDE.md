@@ -37,8 +37,37 @@ sudo nixos-rebuild switch --flake .#thinkpad
 
 Nothing changes on your running system until you rebuild. If something breaks after a rebuild:
 ```bash
-sudo nixos-rebuild switch --rollback
+sudo nixos-rebuild switch --flake .#thinkpad --rollback
 ```
+
+The `--flake .#thinkpad` is **required** even for rollback. Without it,
+`nixos-rebuild` falls through to the legacy `<nixpkgs/nixos>` NIX_PATH lookup
+(which this flake-based setup doesn't have configured) and errors out *before*
+it ever reaches the rollback logic. The rollback itself doesn't rebuild
+anything — it just re-activates a previous system closure that's already in
+the Nix store — but the tool still wants to evaluate the flake to figure out
+which version of `nixos-rebuild` to re-exec as.
+
+### Emergency rollback (when `nixos-rebuild` itself won't evaluate)
+
+If even the command above fails (e.g. the flake doesn't evaluate at all, or
+something in the toolchain is broken), bypass `nixos-rebuild` and switch the
+system profile directly. The previous generation's closure is in the store,
+so this is fast and offline:
+
+```bash
+# 1. List generations to pick the prior one
+sudo nix-env --list-generations -p /nix/var/nix/profiles/system | tail -5
+
+# 2. Switch the profile pointer to that generation number
+sudo nix-env --switch-generation <N> -p /nix/var/nix/profiles/system
+
+# 3. Activate it
+sudo /nix/var/nix/profiles/system/bin/switch-to-configuration switch
+```
+
+Same effect as `--rollback`, but with zero evaluation needed. Final fallback
+beyond this: reboot and select a previous generation from the GRUB menu.
 
 There is no way to update a single package independently — all packages come from the same pinned nixpkgs commit. If you need to pin a specific version of one package ahead of nixpkgs, use an overlay in `flake.nix` to override that package's version and hash.
 
