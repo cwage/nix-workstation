@@ -142,6 +142,31 @@ in
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.android_sdk.accept_license = true;
 
+  # awesome 4.3's build-time lua tooling (doc/example generation + lgi sanity
+  # check) loads lgi+cairo. Current nixpkgs ships an lgi whose API the awesome
+  # 4.3 sources predate ("lgi.record expected, got table" from cairo bindings).
+  # Fixes:
+  #   - GENERATE_DOC=OFF skips API doc + example-image generation.
+  #   - Patch CMakeLists.txt — it unconditionally adds check-examples as a
+  #     dep of `check`, but that target only exists when GENERATE_DOC=ON.
+  #   - AWESOME_IGNORE_LGI=1 — upstream's own escape hatch in
+  #     build-utils/lgi-check.c: warn but exit 0 instead of failing the build.
+  nixpkgs.overlays = [
+    (final: prev: {
+      awesome = prev.awesome.overrideAttrs (old: {
+        cmakeFlags = (old.cmakeFlags or [ ]) ++ [ "-DGENERATE_DOC=OFF" ];
+        outputs = [ "out" ];
+        env = (old.env or { }) // { AWESOME_IGNORE_LGI = "1"; };
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace CMakeLists.txt \
+            --replace-fail \
+              'add_dependencies(check check-qa check-examples)' \
+              'add_dependencies(check check-qa)'
+        '';
+      });
+    })
+  ];
+
   # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
     # Basics
