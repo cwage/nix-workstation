@@ -37,7 +37,7 @@ sudo nixos-rebuild switch --flake .#thinkpad
 
 Nothing changes on your running system until you rebuild. If something breaks after a rebuild:
 ```bash
-sudo nixos-rebuild switch --rollback --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#thinkpad --rollback
 ```
 
 The `--flake .#thinkpad` is **required** even for rollback. Without it,
