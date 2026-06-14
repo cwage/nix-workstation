@@ -46,6 +46,20 @@
     };
   };
 
+  # WireGuard tunnel address (host-specific; peer config lives in hosts/common).
+  networking.wg-quick.interfaces.wg0.address = [ "10.10.16.5/32" ];
+
+  # Clamp the AMD dGPU to its lowest DPM state. `enableIGPU` above only routes
+  # display through the iGPU via apple-gmux — it does NOT power down the dGPU,
+  # which otherwise idles at PCI D0 (hot + battery drain). Full D3cold isn't
+  # reachable on MacBookPro16,1 because the ACPI methods (PWRD/PWG1) macOS
+  # uses to bring the dGPU back aren't called by Linux, so a hard power-off
+  # can't be reliably reversed. DPM=low is the canonical t2linux fix.
+  # Source: https://wiki.t2linux.org/guides/hybrid-graphics/
+  services.udev.extraRules = ''
+    SUBSYSTEM=="drm", DRIVERS=="amdgpu", ATTR{device/power_dpm_force_performance_level}="low"
+  '';
+
   # This value determines the NixOS release from which the default settings for
   # stateful data were taken. Set to the release this host is installed from.
   system.stateVersion = "25.11";

@@ -19,6 +19,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.useOSProber = true;
 
+  # WireGuard tunnel address (host-specific; peer config lives in hosts/common).
+  networking.wg-quick.interfaces.wg0.address = [ "10.10.16.4/32" ];
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken.

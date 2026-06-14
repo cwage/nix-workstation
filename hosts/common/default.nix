@@ -307,9 +307,9 @@ in
   # Steam
   programs.steam.enable = true;
 
-  # WireGuard VPN (client connection to homelab)
+  # WireGuard VPN (client connection to homelab). `address` is host-specific
+  # (each client needs its own tunnel IP) and is set in the per-host config.
   networking.wg-quick.interfaces.wg0 = {
-    address = [ "10.10.16.4/32" ];
     privateKeyFile = "/etc/wireguard/wg0.key";
     dns = [ "10.10.15.1" ];
 
@@ -332,6 +332,21 @@ in
       persistentKeepalive = 25;
     }];
   };
+
+  # Don't try to bring wg0 up if the key isn't provisioned yet (e.g. on a
+  # fresh install before the peer side has been set up). Without this guard
+  # wg-quick partially activates — assigns the address and registers wg0's
+  # DNS server (10.10.15.1) via resolvconf — then fails when it can't read
+  # the key, leaving the system pointed at an unreachable resolver.
+  systemd.services.wg-quick-wg0.unitConfig.ConditionPathExists =
+    "/etc/wireguard/wg0.key";
+
+  # Don't auto-start at boot. From the home LAN the endpoint hostname
+  # resolves to the WAN IP, and without router hairpin NAT the handshake
+  # never completes — meanwhile wg-quick has already added a route for
+  # 10.10.15.0/24 via wg0 that shadows the connected LAN route. Start it
+  # manually with `systemctl start wg-quick-wg0` when roaming.
+  systemd.services.wg-quick-wg0.wantedBy = lib.mkForce [ ];
 
   # NFS client + autofs (NAS shares over WireGuard tunnel)
   services.autofs = {
