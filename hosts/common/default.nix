@@ -348,6 +348,14 @@ in
   # manually with `systemctl start wg-quick-wg0` when roaming.
   systemd.services.wg-quick-wg0.wantedBy = lib.mkForce [ ];
 
+  # wg0 is manually controlled (see wantedBy override above). Don't let a
+  # nixos-rebuild switch bounce the running tunnel: the restart resolves the
+  # endpoint hostname at start time, and if it lands in a DNS-unavailable
+  # window during the rebuild (the tunnel-only resolver 10.10.15.1 was just
+  # torn down), wg-quick fails the whole unit. Config changes to wg0 apply on
+  # the next manual `systemctl restart wg-quick-wg0`.
+  systemd.services.wg-quick-wg0.restartIfChanged = false;
+
   # NFS client + autofs (NAS shares over WireGuard tunnel)
   services.autofs = {
     enable = true;
