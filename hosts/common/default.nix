@@ -37,6 +37,10 @@ let
   ];
 in
 {
+  imports = [
+    ./vaults.nix
+  ];
+
   # Disable the legacy PC speaker / TTY beep.
   boot.blacklistedKernelModules = [ "pcspkr" "snd_pcsp" ];
 
