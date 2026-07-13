@@ -44,6 +44,10 @@
     before = [ "sleep.target" ];
     unitConfig.ConditionPathExists = "/home/cwage/bin/vault";
     path = [ "/run/wrappers" pkgs.gocryptfs pkgs.procps pkgs.psmisc pkgs.coreutils ];
+    # systemd >= 255 no longer sets $HOME for User= services unless
+    # SetLoginEnvironment is on; the vault script locates everything under
+    # $HOME, so without this it silently finds no vaults and no-ops.
+    environment.HOME = "/home/cwage";
     serviceConfig = {
       Type = "oneshot";
       User = "cwage";
