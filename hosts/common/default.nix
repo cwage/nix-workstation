@@ -37,6 +37,10 @@ let
   ];
 in
 {
+  imports = [
+    ./vaults.nix
+  ];
+
   # Disable the legacy PC speaker / TTY beep.
   boot.blacklistedKernelModules = [ "pcspkr" "snd_pcsp" ];
 
@@ -175,7 +179,7 @@ in
     brightnessctl                  # backlight control
     polkit_gnome                   # policykit auth agent
     udiskie                        # automount
-    arandr                         # xrandr GUI
+    # arandr                       # xrandr GUI — broken upstream in current nixpkgs, rarely used
     scrot                          # screenshots
     xclip                          # clipboard
 
