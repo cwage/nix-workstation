@@ -4,10 +4,9 @@
 # A vault is a gocryptfs ciphertext dir (~/vaults/NAME.enc) mounted to a
 # plaintext view (~/NAME) while in use. The master password is stored
 # age-encrypted to YubiKey (PIV) identities, so opening is plug-in-and-touch.
-# Lock policy is aggressive: the lock wrapper (~/bin/xscreensaver-lock)
-# force-closes all vaults on manual/idle/suspend locks; the systemd unit
-# below backstops suspend/hibernate so a hung X session or dead xss-lock
-# can't carry a mounted vault into sleep.
+# Lock policy: vaults survive screen locks and are force-closed only on
+# suspend/hibernate, by the systemd unit below — a system unit so a hung X
+# session or dead xss-lock can't carry a mounted vault into sleep.
 
 { pkgs, ... }:
 
