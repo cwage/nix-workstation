@@ -220,7 +220,12 @@ in
     firejail                         # profile-based sandbox wrapper
     nsjail                           # namespaces + seccomp + cgroups in one tool
     podman-compose                   # rootless container compose (podman enabled below)
-    mitmproxy                        # HTTPS proxy for allowlisting outbound API traffic
+    # mitmproxy - HTTPS proxy for allowlisting outbound API traffic.
+    # Temporarily disabled: broken upstream in current nixpkgs. mitmproxy
+    # 12.2.3 pins msgpack<=1.1.2 but nixpkgs ships msgpack 1.2.1, so the
+    # pythonRuntimeDepsCheck hook fails the build. Re-enable once nixpkgs
+    # bumps mitmproxy (or relaxes the msgpack bound).
+    # mitmproxy
     strace                           # syscall tracer (useful for building seccomp profiles)
     libseccomp                       # seccomp library + scmp_sys_resolver CLI
     rubyPackages.seccomp-tools       # seccomp BPF dumping/analysis (david942j)
