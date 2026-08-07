@@ -33,11 +33,20 @@
   boot.resumeDevice = "/dev/disk/by-uuid/6dec2fdc-865e-4f53-b2e6-10a90509fb9d";
   boot.kernelParams = [ "resume_offset=10444800" ];
 
-  # Lid close: suspend, then hibernate once systemd estimates the battery is
-  # near depletion (systemd >= 253 battery-discharge estimation; no fixed
-  # HibernateDelaySec so the adaptive logic applies). Overrides the plain
-  # "suspend" default in hosts/common.
+  # Lid close: suspend, then hibernate to the swapfile after a fixed delay in
+  # S3. Overrides the plain "suspend" default in hosts/common.
   services.logind.settings.Login.HandleLidSwitch = lib.mkForce "suspend-then-hibernate";
+
+  # Use an explicit HibernateDelaySec instead of systemd's battery-discharge
+  # estimation. The estimation path was never arming the RTC wake alarm that
+  # triggers the hibernate step, so the machine sat in S3 (deep suspend, which
+  # still drains ~1-2%/hr) until the battery hard-died in the bag. A fixed
+  # delay arms a definite RTC alarm; this hardware wakes from the RTC in S3
+  # (verified with `rtcwake -m mem`), so the hibernate step now fires. 30min is
+  # short enough to preserve battery in a bag but long enough that a brief
+  # lid-close-and-reopen just resumes from S3 rather than doing a slow
+  # hibernate round trip. Tune upward if quick lid closes hibernate too eagerly.
+  systemd.sleep.settings.Sleep.HibernateDelaySec = "30min";
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
