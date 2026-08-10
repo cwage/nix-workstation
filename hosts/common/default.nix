@@ -290,8 +290,17 @@ in
   # Flatpak (for apps like ncspot, Zoom)
   services.flatpak.enable = true;
   xdg.portal.enable = true;
-  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  xdg.portal.config.common.default = "*";
+  xdg.portal.extraPortals = [
+    pkgs.xdg-desktop-portal-gtk
+    pkgs.kdePackages.xdg-desktop-portal-kde  # file chooser only (thumbnails/preview)
+  ];
+  xdg.portal.config.common.default = [ "gtk" ];
+  xdg.portal.config.common."org.freedesktop.impl.portal.FileChooser" = [ "kde" ];
+
+  # dconf: GSettings backend so GTK apps/portals persist settings
+  # (e.g. file chooser window size — without it every picker opens at
+  # natural size, which can exceed the screen)
+  programs.dconf.enable = true;
 
   # Docker — rootless mode (daemon runs as user, no root-equivalent group)
   # Uses pasta (passt) instead of slirp4netns for container networking so that
