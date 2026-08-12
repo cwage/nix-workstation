@@ -384,8 +384,10 @@ in
 
   environment.etc."auto.nas".text = ''
     # Wildcard map: /mnt/nas/<share> → 10.10.15.4:/volume1/<share>
-    # Soft mount with aggressive timeouts for roaming laptop use
-    * -fstype=nfs,soft,timeo=30,retrans=2,actimeo=3 10.10.15.4:/volume1/&
+    # Soft mount with aggressive timeouts for roaming laptop use.
+    # actimeo=60: attribute cache must outlive a directory listing, or every
+    # ls/stat pays one ~20ms VPN round trip per file (54s for 3.4k files at 3s)
+    * -fstype=nfs,soft,timeo=30,retrans=2,actimeo=60 10.10.15.4:/volume1/&
   '';
 
   # Firewall (NixOS iptables-based, replaces ufw)
