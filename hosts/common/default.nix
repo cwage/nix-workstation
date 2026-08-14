@@ -113,10 +113,19 @@ in
   # UDisks2 (required for udiskie automount/tray)
   services.udisks2.enable = true;
 
+  # TPM 2.0 userland access: creates the tss group and udev rules so
+  # /dev/tpmrm0 (kernel resource manager) is group-accessible instead of
+  # root-only. tctiEnvironment sets TPM2TOOLS_TCTI/TPM2_PKCS11_TCTI to point
+  # tools at /dev/tpmrm0. No-op on hosts without a TPM (macbookpro/T2).
+  security.tpm2 = {
+    enable = true;
+    tctiEnvironment.enable = true;
+  };
+
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.cwage = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "networkmanager" "plugdev" "kvm" ];
+    extraGroups = [ "wheel" "audio" "video" "networkmanager" "plugdev" "kvm" "tss" ];
     packages = with pkgs; [
       tree
     ];
@@ -205,6 +214,7 @@ in
     # Network / system tools
     nmap
     mtr
+    tpm2-tools                       # tpm2_getcap / tpm2_pcrread / etc.
     dnsutils                         # dig, nslookup, etc.
     socat
     wireguard-tools
@@ -254,6 +264,7 @@ in
     w3m
     mutt
     gh
+    flyctl                           # fly.io CLI (binary is `fly`)
     pass
     swaks
     ddgr
