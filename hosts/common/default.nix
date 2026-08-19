@@ -99,6 +99,23 @@ in
     };
   };
 
+  # Bluetooth. The stack is bluez + PipeWire's native backend, which handles
+  # both A2DP (stereo media, no mic) and HFP (mic live, mono) without ofono or
+  # hsphfpd. powerOnBoot is off so the adapter only comes up when asked --
+  # relevant when working somewhere a stray auto-connect is unwelcome.
+  # Experimental exposes the BLE battery-level interface that UPower/blueman
+  # read to show headset charge.
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = false;
+    settings.General.Experimental = true;
+  };
+
+  # blueman: systray pairing/connection GUI (blueman-applet, started from
+  # .xsession) plus the blueman-mechanism D-Bus service and polkit rules that
+  # let pairing happen without a root prompt.
+  services.blueman.enable = true;
+
   # SDR hardware support (udev rules, plugdev group, kernel module blacklists)
   hardware.rtl-sdr.enable = true;
   hardware.hackrf.enable = true;
@@ -185,6 +202,7 @@ in
     cbatticon                      # lightweight battery tray icon
     volumeicon                     # systray volume icon
     pavucontrol                    # PulseAudio volume control GUI
+    alsa-utils                     # amixer/alsamixer -- mixer layer below PipeWire
     brightnessctl                  # backlight control
     polkit_gnome                   # policykit auth agent
     udiskie                        # automount
