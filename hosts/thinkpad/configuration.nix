@@ -18,6 +18,8 @@
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.useOSProber = true;
+  # Cap boot menu entries; older generations are still GC'd by nix.gc.
+  boot.loader.grub.configurationLimit = 10;
 
   # WireGuard tunnel address (host-specific; peer config lives in hosts/common).
   networking.wg-quick.interfaces.wg0.address = [ "10.10.16.4/32" ];

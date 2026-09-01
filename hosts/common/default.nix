@@ -151,12 +151,16 @@ in
   # Enable flakes and the new nix CLI
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Automatic Nix store garbage collection (weekly, keep last 30 days)
+  # Automatic Nix store garbage collection. Frequent flake updates churn a lot
+  # of store paths, so keep only two weeks of generations.
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-older-than 30d";
+    options = "--delete-older-than 14d";
   };
+
+  # Deduplicate identical store files via hard links as they're added.
+  nix.settings.auto-optimise-store = true;
 
   # Allow non-free
   nixpkgs.config.allowUnfree = true;

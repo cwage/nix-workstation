@@ -22,6 +22,8 @@
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.useOSProber = true;
+  # Cap boot menu entries; older generations are still GC'd by nix.gc.
+  boot.loader.grub.configurationLimit = 10;
 
   # --- Apple T2 support (module wired in via flake.nix) ---
   hardware.apple-t2 = {
