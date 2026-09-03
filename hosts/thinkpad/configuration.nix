@@ -50,6 +50,23 @@
   # hibernate round trip. Tune upward if quick lid closes hibernate too eagerly.
   systemd.sleep.settings.Sleep.HibernateDelaySec = "30min";
 
+  # Internal keyboard: evdev-level key remaps so they apply everywhere,
+  # including GLFW/SDL games (Minecraft etc.) that bind by physical scancode
+  # and ignore XKB-layer remapping. Same approach as the Unicomp hwdb on
+  # portaplotz:
+  #   CapsLock -> Left Control (one-way; left Ctrl stays Ctrl)
+  #   Grave    -> Escape       (the key above Tab sends Esc)
+  #   Escape   -> Grave        (physical Esc sends `/~)
+  # Scancodes are AT set-1: 3a=CapsLock 29=Grave 01=Escape.
+  # NOTE: requires removing the setxkbmap ctrl:swapcaps + esc/grave swap from
+  # ~/.xsession / ~/.xkb (dotfiles repo), or the layers cancel out.
+  services.udev.extraHwdb = ''
+    evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO:pn*:pvrThinkPadT580*
+     KEYBOARD_KEY_3a=leftctrl
+     KEYBOARD_KEY_29=esc
+     KEYBOARD_KEY_01=grave
+  '';
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken.
