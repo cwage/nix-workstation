@@ -281,6 +281,7 @@ in
 
     # Gaming
     dotnet-runtime_8
+    prismlauncher                    # Minecraft launcher
 
     # Utilities
     btop
