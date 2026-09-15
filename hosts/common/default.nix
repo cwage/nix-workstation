@@ -430,5 +430,9 @@ in
     enable = true;
     allowedTCPPorts = [ 22 1234 ]; # SSH, rtl_tcp
     # allowedUDPPorts = [ ];
+    # Accept everything arriving over the WireGuard tunnel. WireGuard's
+    # cryptokey routing already drops packets whose source isn't in the
+    # peer's allowedIPs, so this trusts exactly the homelab subnets.
+    trustedInterfaces = [ "wg0" ];
   };
 }
