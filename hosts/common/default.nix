@@ -429,7 +429,9 @@ in
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 1234 ]; # SSH, rtl_tcp
-    # allowedUDPPorts = [ ];
+    # mDNS: resolved's .local queries get answered to the multicast group,
+    # not back to our address, so conntrack sees them as unsolicited inbound
+    allowedUDPPorts = [ 5353 ];
     # Accept everything arriving over the WireGuard tunnel. WireGuard's
     # cryptokey routing already drops packets whose source isn't in the
     # peer's allowedIPs, so this trusts exactly the homelab subnets.
