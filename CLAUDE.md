@@ -22,13 +22,16 @@ sudo nixos-rebuild switch --flake .#thinkpad
 - **ufw is unnecessary** — NixOS has networking.firewall built-in.
 
 ## Updating Packages
-All packages are pinned to a specific nixpkgs commit via `flake.lock`. To update:
+The system tracks the stable NixOS release (`nixos-26.05`), with home-manager on the matching `release-26.05` branch — the two must always move together. Fast-moving packages that need frequent updates (currently `claude-code` and `codex`) come from `nixos-unstable` via `unstableOverlay` in `flake.nix`; add to that overlay rather than moving the whole system to unstable. All inputs are pinned via `flake.lock`. To update:
 
 ```bash
-# Update all flake inputs (nixpkgs, home-manager, dotfiles)
+# Update all flake inputs (nixpkgs, nixpkgs-unstable, home-manager, dotfiles)
 nix flake update
 
-# Or update only nixpkgs
+# Or update only the unstable-sourced packages
+nix flake update nixpkgs-unstable
+
+# Or update only the stable base
 nix flake update nixpkgs
 
 # Then rebuild to apply
@@ -69,7 +72,7 @@ sudo /nix/var/nix/profiles/system/bin/switch-to-configuration switch
 Same effect as `--rollback`, but with zero evaluation needed. Final fallback
 beyond this: reboot and select a previous generation from the GRUB menu.
 
-There is no way to update a single package independently — all packages come from the same pinned nixpkgs commit. If you need to pin a specific version of one package ahead of nixpkgs, use an overlay in `flake.nix` to override that package's version and hash.
+To get a newer version of one package, first add it to `unstableOverlay`. If even unstable is too old, use an overlay in `flake.nix` to override that package's version and hash.
 
 ## Conventions
 - Keep changes scoped and modular; avoid monolithic configs.

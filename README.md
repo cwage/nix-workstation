@@ -64,17 +64,24 @@ sudo nixos-rebuild switch --flake .#thinkpad
 
 ## Updating packages
 
-All packages are pinned to a specific nixpkgs commit via `flake.lock`. Nothing changes on your running system until you rebuild.
+The system tracks the stable NixOS release (`nixos-26.05`), with home-manager on the matching `release-26.05` branch. A handful of fast-moving packages (currently `claude-code` and `codex`) come from `nixos-unstable` instead, via `unstableOverlay` in `flake.nix`. Every input is pinned to a specific commit via `flake.lock`. Nothing changes on your running system until you rebuild.
 
 ```bash
-# Update all flake inputs (nixpkgs, home-manager, dotfiles)
+# Update all flake inputs (nixpkgs, nixpkgs-unstable, home-manager, dotfiles)
 nix flake update
 
-# Or update only nixpkgs (keeps other inputs pinned)
+# Or update only the unstable packages (e.g. to pick up a new claude-code)
+nix flake update nixpkgs-unstable
+
+# Or update only the stable base
 nix flake update nixpkgs
 ```
 
-You can't update a single package independently — they all come from the same pinned nixpkgs commit. If you need a specific version of one package ahead of nixpkgs, use an overlay in `flake.nix`.
+To move another package to unstable, add it to `unstableOverlay` in `flake.nix`.
+
+### Moving to a new NixOS release
+
+Releases come out every May and November. To upgrade, change the `nixos-YY.MM` branch on the `nixpkgs` input and the `release-YY.MM` branch on the `home-manager` input together, then run `nix flake lock` and rebuild. Don't change `system.stateVersion` as part of a release upgrade. Prefer `nixos-rebuild boot` plus a reboot over `switch`, since core components like systemd change version.
 
 ### Previewing what changed
 
