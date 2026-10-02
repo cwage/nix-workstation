@@ -2,17 +2,16 @@
   description = "NixOS workstation configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-    # Pinned to a pre-2026-05-08 nixos-unstable commit for awesome 4.3, which
-    # broke against the lgi/cairo bump that landed via staging-next on
-    # 2026-05-08. Both build and runtime fail in lgi/override/cairo.lua.
-    # Tracked upstream in NixOS/nixpkgs#523345 — when that's fixed, drop this
-    # input and the overlay below.
-    nixpkgs-awesome.url = "github:NixOS/nixpkgs/549bd84d6279f9852cae6225e372cc67fb91a4c1";
+    # Fast-moving packages (coding agents that need frequent updates for new
+    # model support) come from unstable via unstableOverlay below. Everything
+    # else stays on the stable release above.
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager";
+      # Must match the nixpkgs release branch above.
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -31,13 +30,20 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-awesome, home-manager, dotfiles, nix-index-database, nixos-hardware, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, dotfiles, nix-index-database, nixos-hardware, ... }:
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    awesomeOverlay = (final: prev: {
-      awesome = nixpkgs-awesome.legacyPackages.${system}.awesome;
-    });
+    unstableOverlay = (final: prev:
+      let
+        unstable = import nixpkgs-unstable {
+          inherit system;
+          config = prev.config; # carry allowUnfree etc. from the host config
+        };
+      in {
+        claude-code = unstable.claude-code;
+        codex = unstable.codex;
+      });
   in
   {
     packages.${system} = {
@@ -52,7 +58,7 @@
         mkHost = { hostname, extraModules ? [ ] }: nixpkgs.lib.nixosSystem {
           inherit system;
           modules = [
-            { nixpkgs.overlays = [ awesomeOverlay ]; }
+            { nixpkgs.overlays = [ unstableOverlay ]; }
             ./hosts/${hostname}
             nix-index-database.nixosModules.nix-index
             home-manager.nixosModules.home-manager
