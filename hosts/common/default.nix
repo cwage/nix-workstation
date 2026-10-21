@@ -231,6 +231,7 @@ in
     emacs
     copilot-language-server         # backs copilot.el in the spacemacs github-copilot layer
     signal-desktop
+    slack
 
     # Media
     ffmpeg
