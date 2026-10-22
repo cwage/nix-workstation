@@ -103,6 +103,13 @@ nixos-rebuild build --flake .#thinkpad
 nvd diff /run/current-system result
 ```
 
+To see *why* a package changed, `scripts/whatchanged.sh` takes each upgrade nvd lists (or the package names you pass it) and prints what on the system depends on it plus the nixpkgs commits between the old and new locked revisions that mention it, with PR links. The PR body is usually where the upstream changelog is linked. It compares `flake.lock` in HEAD against the working tree, so run it before committing the lock update:
+
+```bash
+scripts/whatchanged.sh            # every version change
+scripts/whatchanged.sh boringssl  # one package
+```
+
 If you're happy with the changes:
 
 ```bash

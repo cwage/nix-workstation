@@ -33,7 +33,19 @@
   # swapfile's physical extent start, found after the file exists via:
   #   sudo filefrag -v /swapfile | awk '$1=="0:" {print $4+0}'
   boot.resumeDevice = "/dev/disk/by-uuid/6dec2fdc-865e-4f53-b2e6-10a90509fb9d";
-  boot.kernelParams = [ "resume_offset=10444800" ];
+  boot.kernelParams = [
+    "resume_offset=10444800"
+
+    # Disable NVMe APST on the Samsung PM981 (MZVLB512HAJQ). Diagnostic for
+    # silent hangs since 2026-10-16: three S3 wakes in a bag never reached
+    # userspace and drained the battery at ~4 W (awake but hung), plus one
+    # daytime freeze under heavy disk writes. No kernel log, no panic, no
+    # NVMe error entries, which matches the drive dropping off the bus on a
+    # power-state transition. If a week passes clean, raise this to a
+    # moderate cap (e.g. 5500) instead of 0; if it still dies, the NVMe is
+    # cleared and the next suspects are the Thunderbolt/xHCI resume paths.
+    "nvme_core.default_ps_max_latency_us=0"
+  ];
 
   # Lid close: suspend, then hibernate to the swapfile after a fixed delay in
   # S3. Overrides the plain "suspend" default in hosts/common.
