@@ -77,16 +77,6 @@ in
   }];
   services.displayManager.defaultSession = "none+xsession";
 
-  # TEMPORARY: distrust the roots behind the compromised eMudhra intermediates
-  # (https://emudhra.we-have-a-problem.com/, 2026-10-20). Browsers block them
-  # via their own revocation lists; this covers curl/git/nix/Python/Go and
-  # anything else using the system bundle. Remove once the nixpkgs pin carries
-  # nss-cacert >= 3.131.1.
-  security.pki.caCertificateBlacklist = [
-    "Comodo AAA Services root"
-    "emSign ECC Root CA - G3"
-  ];
-
   # Enable sound with pipewire
   security.rtkit.enable = true;
   services.pipewire = {
