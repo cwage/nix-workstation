@@ -57,6 +57,9 @@
         # extraModules adds hardware modules (e.g. nixos-hardware apple-t2).
         mkHost = { hostname, extraModules ? [ ] }: nixpkgs.lib.nixosSystem {
           inherit system;
+          # Lets host modules (e.g. hosts/thinkpad/smallstep.nix) import the
+          # dotfiles home-manager module for additional users.
+          specialArgs = { inherit dotfiles; };
           modules = [
             { nixpkgs.overlays = [ unstableOverlay ]; }
             ./hosts/${hostname}
