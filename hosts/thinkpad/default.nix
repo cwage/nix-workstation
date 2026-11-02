@@ -4,6 +4,7 @@
 {
   imports = [
     ./configuration.nix
+    ./smallstep.nix
   ];
 
   networking.hostName = "thinkpad";
