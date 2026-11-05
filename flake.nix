@@ -27,7 +27,9 @@
 
     # Apple T2 hardware support (patched apple-bce kernel, Wi-Fi/BT firmware,
     # audio profiles, touchbar, suspend params) for the macbookpro host.
-    nixos-hardware.url = "github:NixOS/nixos-hardware";
+    # TEMP: pinned to NixOS/nixos-hardware#1934 (rebased T2 patches for 6.18.55+).
+    # Revert to github:NixOS/nixos-hardware once that PR merges.
+    nixos-hardware.url = "github:soopyc/nixos-hardware/7082b484432124bd8d53790a11b808429b73fb6b";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, dotfiles, nix-index-database, nixos-hardware, ... }:
