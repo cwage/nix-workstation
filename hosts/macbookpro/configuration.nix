@@ -66,6 +66,64 @@
     options hid_apple swap_opt_cmd=1
   '';
 
+  # Built-in keyboard remaps at the evdev level (same approach as the
+  # thinkpad's hwdb), so they survive the keyboard being re-enumerated on
+  # resume from suspend — an X keymap applied at login is lost when that
+  # happens. Scancodes are USB HID usages:
+  #   70039 CapsLock <-> 700e0 Left Control (swapped)
+  #   70029 Escape   <-> 70035 Grave        (swapped)
+  # The matching XKB remaps were removed from .xsession.macbookpro (dotfiles),
+  # or the two layers would cancel out.
+  services.udev.extraHwdb = ''
+    evdev:input:b0003v05ACp0340*
+     KEYBOARD_KEY_70039=leftctrl
+     KEYBOARD_KEY_700e0=capslock
+     KEYBOARD_KEY_70029=grave
+     KEYBOARD_KEY_70035=esc
+  '';
+
+  # Login screen scaling. The greeter runs before ~/.Xresources is loaded, so
+  # it doesn't see the session's Xft.dpi/cursor settings; give it the same
+  # 2x values (192 DPI, 48px cursor) directly.
+  services.xserver.displayManager.lightdm.greeters.gtk = {
+    cursorTheme.size = 48;
+    extraConfig = ''
+      xft-dpi = 192
+    '';
+  };
+
+  # Suspend workarounds (see issue #54). Deep sleep works on this machine, but
+  # needs two things done around it:
+  #
+  # 1. Take every CPU except CPU 0 offline before suspending and bring them
+  #    back afterwards. On T2 Macs the firmware makes waking secondary CPUs
+  #    during early resume extremely slow; the t2linux 7.x patch set does this
+  #    in the kernel ("Apple T2 systems need early CPU offlining"), which the
+  #    6.18 stable channel lacks. Drop this once the kernel carries that patch.
+  # 2. Turn the internal panel off and on again after resume. Without it the
+  #    machine wakes but the screen stays black (X on the Intel GPU).
+  #
+  # powerDownCommands also runs at shutdown, where offlining CPUs is harmless.
+  # The display step assumes the single local X session of user cwage on :0.
+  powerManagement.powerDownCommands = ''
+    for f in /sys/devices/system/cpu/cpu[1-9]*/online; do
+      echo 0 > "$f" || true
+    done
+  '';
+  powerManagement.resumeCommands = ''
+    for f in /sys/devices/system/cpu/cpu[1-9]*/online; do
+      echo 1 > "$f" || true
+    done
+    xr() {
+      ${pkgs.util-linux}/bin/runuser -u cwage -- ${pkgs.coreutils}/bin/env \
+        DISPLAY=:0 XAUTHORITY=/home/cwage/.Xauthority \
+        ${pkgs.xrandr}/bin/xrandr "$@" || true
+    }
+    xr --output eDP-1 --off
+    sleep 2
+    xr --output eDP-1 --auto
+  '';
+
   # Clamp the AMD dGPU to its lowest DPM state. `enableIGPU` above only routes
   # display through the iGPU via apple-gmux — it does NOT power down the dGPU,
   # which otherwise idles at PCI D0 (hot + battery drain). Full D3cold isn't
