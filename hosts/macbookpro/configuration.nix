@@ -58,6 +58,14 @@
     sendEventsMode = "disabled-on-external-mouse";
   };
 
+  # Swap Option and Command on the built-in keyboard so Alt (awesome's Mod1)
+  # sits next to the space bar, where it is on a PC keyboard. Done in the
+  # Apple keyboard driver, so it applies everywhere (console, X, games) and
+  # leaves external keyboards alone.
+  boot.extraModprobeConfig = ''
+    options hid_apple swap_opt_cmd=1
+  '';
+
   # Clamp the AMD dGPU to its lowest DPM state. `enableIGPU` above only routes
   # display through the iGPU via apple-gmux — it does NOT power down the dGPU,
   # which otherwise idles at PCI D0 (hot + battery drain). Full D3cold isn't
