@@ -51,6 +51,13 @@
   # WireGuard tunnel address (host-specific; peer config lives in hosts/common).
   networking.wg-quick.interfaces.wg0.address = [ "10.10.16.5/32" ];
 
+  # Trackpad: ignore it while typing (palms and thumbs graze it constantly),
+  # and switch it off entirely whenever an external mouse is plugged in.
+  services.libinput.touchpad = {
+    disableWhileTyping = true;
+    sendEventsMode = "disabled-on-external-mouse";
+  };
+
   # Clamp the AMD dGPU to its lowest DPM state. `enableIGPU` above only routes
   # display through the iGPU via apple-gmux — it does NOT power down the dGPU,
   # which otherwise idles at PCI D0 (hot + battery drain). Full D3cold isn't
