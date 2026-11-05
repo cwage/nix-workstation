@@ -7,6 +7,14 @@
 
 { config, lib, pkgs, ... }:
 
+let
+  # Suspend/resume workarounds; see t2-suspend-hook.sh and issue #54.
+  t2SuspendHook = pkgs.writeShellApplication {
+    name = "t2-suspend-hook";
+    runtimeInputs = with pkgs; [ coreutils findutils gnugrep util-linux xset ];
+    text = builtins.readFile ./t2-suspend-hook.sh;
+  };
+in
 {
   imports = [
     ../common
@@ -92,37 +100,14 @@
     '';
   };
 
-  # Suspend workarounds (see issue #54). Deep sleep works on this machine, but
-  # needs two things done around it:
-  #
-  # 1. Take every CPU except CPU 0 offline before suspending and bring them
-  #    back afterwards. On T2 Macs the firmware makes waking secondary CPUs
-  #    during early resume extremely slow; the t2linux 7.x patch set does this
-  #    in the kernel ("Apple T2 systems need early CPU offlining"), which the
-  #    6.18 stable channel lacks. Drop this once the kernel carries that patch.
-  # 2. Turn the internal panel off and on again after resume. Without it the
-  #    machine wakes but the screen stays black (X on the Intel GPU).
-  #
-  # powerDownCommands also runs at shutdown, where offlining CPUs is harmless.
-  # The display step assumes the single local X session of user cwage on :0.
-  powerManagement.powerDownCommands = ''
-    for f in /sys/devices/system/cpu/cpu[1-9]*/online; do
-      echo 0 > "$f" || true
-    done
-  '';
-  powerManagement.resumeCommands = ''
-    for f in /sys/devices/system/cpu/cpu[1-9]*/online; do
-      echo 1 > "$f" || true
-    done
-    xr() {
-      ${pkgs.util-linux}/bin/runuser -u cwage -- ${pkgs.coreutils}/bin/env \
-        DISPLAY=:0 XAUTHORITY=/home/cwage/.Xauthority \
-        ${pkgs.xrandr}/bin/xrandr "$@" || true
-    }
-    xr --output eDP-1 --off
-    sleep 2
-    xr --output eDP-1 --auto
-  '';
+  # Suspend workarounds (see issue #54 and t2-suspend-hook.sh). Deep sleep
+  # works on this machine, but needs three things done around it: CPUs 1-15
+  # taken offline, the idle Thunderbolt controllers removed from the PCI bus
+  # (they add ~37 s to resume otherwise), and the panel power-cycled after
+  # wake. The first can go once the kernel carries the t2linux 7.x patch
+  # "Apple T2 systems need early CPU offlining".
+  powerManagement.powerDownCommands = "${lib.getExe t2SuspendHook} pre";
+  powerManagement.resumeCommands = "${lib.getExe t2SuspendHook} post";
 
   # Clamp the AMD dGPU to its lowest DPM state. `enableIGPU` above only routes
   # display through the iGPU via apple-gmux — it does NOT power down the dGPU,
