@@ -193,7 +193,18 @@ in
 
     # Window manager and session
     awesome
-    xterm
+    # xterm, linked against libXcursor so it uses the cursor theme. libX11
+    # loads libXcursor.so.1 by bare name at runtime, which fails on NixOS (no
+    # global library path), leaving xterm with the tiny built-in X cursors.
+    # Adding it as a direct dependency makes that load succeed. Preferred over
+    # an LD_LIBRARY_PATH wrapper, which would leak into every shell.
+    (xterm.overrideAttrs (old: {
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ patchelf ];
+      postFixup = (old.postFixup or "") + ''
+        patchelf --add-needed libXcursor.so.1 \
+          --add-rpath ${libxcursor}/lib $out/bin/.xterm-wrapped
+      '';
+    }))
 
     # Session/lock management
     xss-lock
