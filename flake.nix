@@ -50,6 +50,8 @@
   {
     packages.${system} = {
       agentpen = pkgs.callPackage ./pkgs/agentpen.nix { };
+      linear-cli = pkgs.callPackage ./pkgs/linear-cli.nix { };
+      ntn = pkgs.callPackage ./pkgs/ntn.nix { };
     };
 
     nixosConfigurations =

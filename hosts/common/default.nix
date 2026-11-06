@@ -173,6 +173,8 @@ in
     tmux
     mosh
     agentpen
+    (callPackage ../../pkgs/linear-cli.nix { })
+    (callPackage ../../pkgs/ntn.nix { })
     opencode
     git
     curl
