@@ -1,6 +1,16 @@
 # nix-workstation
 
-NixOS configuration for the thinkpad, managed via flakes with Home Manager for dotfiles.
+NixOS configuration for cwage's laptops, managed via flakes with Home Manager for dotfiles.
+
+## Hosts
+
+`<host>` in the commands below is one of:
+
+| host | machine | notes |
+| --- | --- | --- |
+| `darterpro` | System76 Darter Pro (darp11-b) | current daily machine / Smallstep laptop; see [hosts/darterpro/INSTALL.md](hosts/darterpro/INSTALL.md) |
+| `macbookpro` | MacBookPro16,1 (Apple T2) | dual-boots Ubuntu; see [hosts/macbookpro/INSTALL.md](hosts/macbookpro/INSTALL.md) |
+| `thinkpad` | ThinkPad T580 | dead hardware, config kept for reference |
 
 ## Prerequisites
 
@@ -23,7 +33,7 @@ Build and activate:
 
 ```bash
 cd ~/git/cwage/nix-workstation
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 ## Rebuilding after changes
@@ -33,7 +43,7 @@ sudo nixos-rebuild switch --flake .#thinkpad
 Edit files in `hosts/thinkpad/` or `flake.nix`, then:
 
 ```bash
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 ### Dotfiles changes
@@ -42,7 +52,7 @@ The `dotfiles` flake input points at `github:cwage/dotfiles`, so a plain `nix fl
 
 ```bash
 cd ~/git/cwage/nix-workstation
-sudo nixos-rebuild switch --flake .#thinkpad --override-input dotfiles path:/home/cwage/git/cwage/dotfiles --no-write-lock-file
+sudo nixos-rebuild switch --flake .#<host> --override-input dotfiles path:/home/cwage/git/cwage/dotfiles --no-write-lock-file
 ```
 
 - `path:` (not `git+file:`) is used so the dirty working tree is included, not just committed files.
@@ -54,23 +64,23 @@ Once you're happy, commit and push the dotfiles, then update the lock to the pus
 ```bash
 cd ~/git/cwage/nix-workstation
 nix flake update dotfiles
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 ### Useful build variants
 
 ```bash
 # Dry run - evaluate only, don't build or activate
-nixos-rebuild dry-build --flake .#thinkpad
+nixos-rebuild dry-build --flake .#<host>
 
 # Build without activating (test that it compiles)
-nixos-rebuild build --flake .#thinkpad
+nixos-rebuild build --flake .#<host>
 
 # Build and activate, but don't add to bootloader (reverts on reboot)
-sudo nixos-rebuild test --flake .#thinkpad
+sudo nixos-rebuild test --flake .#<host>
 
 # Build and switch (activate + set as boot default)
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 ## Updating packages
@@ -99,7 +109,7 @@ Releases come out every May and November. To upgrade, change the `nixos-YY.MM` b
 After updating `flake.lock`, build without activating, then use `nvd` to see a version diff (similar to `apt-get -s upgrade`):
 
 ```bash
-nixos-rebuild build --flake .#thinkpad
+nixos-rebuild build --flake .#<host>
 nvd diff /run/current-system result
 ```
 
@@ -113,7 +123,7 @@ scripts/whatchanged.sh boringssl  # one package
 If you're happy with the changes:
 
 ```bash
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 To roll back if something breaks:
@@ -162,21 +172,35 @@ vendorHash = lib.fakeHash;  # same dance
 Then rebuild as normal:
 
 ```bash
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 ## Repo structure
 
 ```
 nix-workstation/
-├── flake.nix                          # Root flake (nixpkgs, home-manager, dotfiles inputs)
+├── flake.nix                          # Root flake (inputs + one mkHost per machine)
 ├── flake.lock                         # Pinned input versions
+├── pkgs/                              # Locally packaged tools (agentpen, kots, …)
 └── hosts/
-    └── thinkpad/
-        ├── default.nix                # Host entry point (hostname, imports)
-        ├── configuration.nix          # System config (packages, services, users)
+    ├── common/
+    │   ├── default.nix                # Shared desktop — every host imports this
+    │   ├── vaults.nix                 # gocryptfs vaults (imported by default.nix)
+    │   ├── homelab.nix                # Opt-in: WireGuard tunnel + NFS shares
+    │   ├── gaming.nix                 # Opt-in: Steam, Prismlauncher
+    │   ├── sdr.nix                    # Opt-in: rtl-sdr/hackrf + radio tooling
+    │   ├── android.nix                # Opt-in: Android SDK, emulator, JDK
+    │   └── smallstep-tools.nix        # Home Manager module: work tooling
+    └── <host>/
+        ├── default.nix                # Host entry point (hostname, HM imports)
+        ├── configuration.nix          # Host system config + which common modules
         └── hardware-configuration.nix # Hardware-specific (generated, machine-specific)
 ```
+
+Adding a host: create `hosts/<host>/` (the three files above), add a `mkHost`
+entry in `flake.nix`, and add `.Xresources.<host>` + `.xsession.<host>` to the
+dotfiles repo — Home Manager selects those by hostname and evaluation fails
+without them.
 
 ## Notes
 
