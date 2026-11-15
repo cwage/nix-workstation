@@ -18,6 +18,10 @@ in
 {
   imports = [
     ../common
+    ../common/homelab.nix
+    ../common/gaming.nix
+    ../common/sdr.nix
+    ../common/android.nix
     ./hardware-configuration.nix
   ];
 

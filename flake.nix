@@ -87,6 +87,11 @@
       {
         thinkpad = mkHost { hostname = "thinkpad"; };
 
+        # System76 Darter Pro (darp11-b). Stock kernel handles all of its
+        # hardware, so no nixos-hardware module; host options live in
+        # hosts/darterpro.
+        darterpro = mkHost { hostname = "darterpro"; };
+
         # MacBookPro16,1 (Apple T2). apple-t2 brings the patched kernel,
         # firmware, audio, touchbar and suspend params; host options live in
         # hosts/macbookpro.

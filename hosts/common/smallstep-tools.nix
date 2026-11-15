@@ -21,6 +21,7 @@
     go
     gopls
     step-cli
+    step-kms-plugin # `step kms ...` with tpmkms: URIs; needs a TPM
     (callPackage ../../pkgs/kots.nix { })
     (callPackage ../../pkgs/replicated.nix { })
 

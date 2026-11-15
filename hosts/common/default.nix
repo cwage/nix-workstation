@@ -1,40 +1,20 @@
-# Shared, host-agnostic workstation configuration.
+# Shared, host-agnostic workstation configuration: the desktop every host
+# gets. Host-specific bits — bootloader, the generated hardware scan,
+# system.stateVersion, and any per-machine hardware quirks (e.g. the Apple T2
+# options on macbookpro) — live in the individual hosts/<host>/ directories.
 #
-# Everything here applies to every host (thinkpad, macbookpro, …). Host-specific
-# bits — bootloader, the generated hardware scan, system.stateVersion, and any
-# per-machine hardware quirks (e.g. the Apple T2 options on macbookpro) — live in
-# the individual hosts/<host>/ directories.
+# Optional feature sets live in sibling modules here and are imported per host,
+# so a machine can leave out what it doesn't need:
+#
+#   ./homelab.nix  WireGuard tunnel + NFS shares (needs a per-host tunnel IP)
+#   ./gaming.nix   Steam, Prismlauncher
+#   ./sdr.nix      rtl-sdr/hackrf udev rules + radio tooling
+#   ./android.nix  Android SDK, emulator, system images, JDK
 
 { config, lib, pkgs, ... }:
 
 let
-  androidSdk = (pkgs.androidenv.composeAndroidPackages {
-    platformVersions = [ "28" "33" "35" ];
-    buildToolsVersions = [ "35.0.0" ];
-    includeEmulator = true;
-    includeSystemImages = true;
-    systemImageTypes = [ "google_apis" ];
-    abiVersions = [ "x86_64" ];
-  }).androidsdk;
-
   agentpen = pkgs.callPackage ../../pkgs/agentpen.nix { };
-
-  # Shadow `claude` / `codex` in PATH with agentpen wrappers. The wrappers
-  # reference the real binaries by absolute store path so agentpen's own
-  # PATH lookup can't recurse into the wrapper. Sibling `*-raw` shims expose
-  # the unwrapped binaries for when sandboxing isn't wanted.
-  wrapAgent = name: realPath: pkgs.writeShellScriptBin name ''
-    exec ${agentpen}/bin/agentpen --agent ${name} ${realPath} "$@"
-  '';
-  rawAgent = name: realPath: pkgs.writeShellScriptBin "${name}-raw" ''
-    exec ${realPath} "$@"
-  '';
-  agentWrappers = [
-    (wrapAgent "claude" "${pkgs.claude-code}/bin/claude")
-    (rawAgent  "claude" "${pkgs.claude-code}/bin/claude")
-    (wrapAgent "codex"  "${pkgs.codex}/bin/codex")
-    (rawAgent  "codex"  "${pkgs.codex}/bin/codex")
-  ];
 in
 {
   imports = [
@@ -116,10 +96,6 @@ in
   # let pairing happen without a root prompt.
   services.blueman.enable = true;
 
-  # SDR hardware support (udev rules, plugdev group, kernel module blacklists)
-  hardware.rtl-sdr.enable = true;
-  hardware.hackrf.enable = true;
-
   # Enable touchpad support
   services.libinput.enable = true;
 
@@ -164,7 +140,6 @@ in
 
   # Allow non-free
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.android_sdk.accept_license = true;
 
   # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
@@ -172,10 +147,17 @@ in
     vim
     tmux
     mosh
-    agentpen
     (callPackage ../../pkgs/linear-cli.nix { })
     (callPackage ../../pkgs/ntn.nix { })
+
+    # Coding agents, unwrapped: plain `claude` / `codex` in PATH. agentpen is
+    # still installed, but you opt into the sandbox per invocation
+    # (`agentpen --agent claude claude …`) rather than it shadowing the real
+    # binaries, which silently confined every session and was surprising.
+    claude-code
+    codex
     opencode
+    agentpen
     git
     curl
     unzip
@@ -254,8 +236,6 @@ in
     tpm2-tools                       # tpm2_getcap / tpm2_pcrread / etc.
     dnsutils                         # dig, nslookup, etc.
     socat
-    wireguard-tools
-    nfs-utils
     plocate
     passt                            # pasta networking for rootless Docker
     nftables                         # nft CLI for inspecting firewall ruleset
@@ -277,26 +257,6 @@ in
     libseccomp                       # seccomp library + scmp_sys_resolver CLI
     rubyPackages.seccomp-tools       # seccomp BPF dumping/analysis (david942j)
 
-    # SDR
-    hackrf
-    rtl-sdr
-    gqrx
-    # gnuradio  # disabled: pyqtgraph 0.14.0 SVGExporter tests fail in current nixpkgs
-    soapysdr-with-plugins
-    rtl_433
-    multimon-ng
-    sox
-
-    # Android development
-    jdk21
-    androidSdk
-    android-tools
-    maestro
-
-    # Gaming
-    dotnet-runtime_8
-    prismlauncher                    # Minecraft launcher
-
     # Utilities
     btop
     w3m
@@ -310,11 +270,7 @@ in
     exfatprogs
     python3Packages.grip
     pinentry-gnome3
-  ] ++ agentWrappers;
-
-  # Android: ANDROID_SDK_ROOT for emulator/gradle (adb udev handled by systemd 258)
-  environment.variables.ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
-  environment.variables.JAVA_HOME = "${pkgs.jdk21}";
+  ];
 
   # Enable gnome-keyring for secrets (optional, used by some apps)
   services.gnome.gnome-keyring.enable = true;
@@ -371,84 +327,13 @@ in
     dockerCompat = false;
   };
 
-  # Steam
-  programs.steam.enable = true;
-
-  # WireGuard VPN (client connection to homelab). `address` is host-specific
-  # (each client needs its own tunnel IP) and is set in the per-host config.
-  networking.wg-quick.interfaces.wg0 = {
-    privateKeyFile = "/etc/wireguard/wg0.key";
-    dns = [ "10.10.15.1" ];
-
-    postUp = ''
-      ${pkgs.systemd}/bin/resolvectl domain wg0 lan.quietlife.net
-    '';
-    postDown = ''
-      # Lazy-unmount any NFS shares under /mnt/nas before tunnel goes away
-      for mnt in $(${pkgs.gawk}/bin/awk -v base="/mnt/nas/" '$2 ~ "^"base {print $2}' /proc/mounts); do
-        ${pkgs.util-linux}/bin/logger -t nas-wg-unmount "WireGuard down: lazy-unmounting $mnt"
-        ${pkgs.util-linux}/bin/umount -l "$mnt" 2>/dev/null
-      done
-      ${pkgs.systemd}/bin/resolvectl revert wg0
-    '';
-
-    peers = [{
-      publicKey = "CzGpUVSwJah7pXfkWi2ZvpYdtYQWgFM46qvzOSYy038=";
-      endpoint = "h.quietlife.net:51923";
-      allowedIPs = [ "10.10.15.0/24" "10.10.16.0/24" ];
-      persistentKeepalive = 25;
-    }];
-  };
-
-  # Don't try to bring wg0 up if the key isn't provisioned yet (e.g. on a
-  # fresh install before the peer side has been set up). Without this guard
-  # wg-quick partially activates — assigns the address and registers wg0's
-  # DNS server (10.10.15.1) via resolvconf — then fails when it can't read
-  # the key, leaving the system pointed at an unreachable resolver.
-  systemd.services.wg-quick-wg0.unitConfig.ConditionPathExists =
-    "/etc/wireguard/wg0.key";
-
-  # Don't auto-start at boot. From the home LAN the endpoint hostname
-  # resolves to the WAN IP, and without router hairpin NAT the handshake
-  # never completes — meanwhile wg-quick has already added a route for
-  # 10.10.15.0/24 via wg0 that shadows the connected LAN route. Start it
-  # manually with `systemctl start wg-quick-wg0` when roaming.
-  systemd.services.wg-quick-wg0.wantedBy = lib.mkForce [ ];
-
-  # wg0 is manually controlled (see wantedBy override above). Don't let a
-  # nixos-rebuild switch bounce the running tunnel: the restart resolves the
-  # endpoint hostname at start time, and if it lands in a DNS-unavailable
-  # window during the rebuild (the tunnel-only resolver 10.10.15.1 was just
-  # torn down), wg-quick fails the whole unit. Config changes to wg0 apply on
-  # the next manual `systemctl restart wg-quick-wg0`.
-  systemd.services.wg-quick-wg0.restartIfChanged = false;
-
-  # NFS client + autofs (NAS shares over WireGuard tunnel)
-  services.autofs = {
-    enable = true;
-    autoMaster = ''
-      /mnt/nas /etc/auto.nas --timeout=300
-    '';
-  };
-
-  environment.etc."auto.nas".text = ''
-    # Wildcard map: /mnt/nas/<share> → 10.10.15.4:/volume1/<share>
-    # Soft mount with aggressive timeouts for roaming laptop use.
-    # actimeo=60: attribute cache must outlive a directory listing, or every
-    # ls/stat pays one ~20ms VPN round trip per file (54s for 3.4k files at 3s)
-    * -fstype=nfs,soft,timeo=30,retrans=2,actimeo=60 10.10.15.4:/volume1/&
-  '';
-
-  # Firewall (NixOS iptables-based, replaces ufw)
+  # Firewall (NixOS iptables-based, replaces ufw). Feature modules add their
+  # own ports (e.g. sdr.nix opens 1234 for rtl_tcp, homelab.nix trusts wg0).
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 22 1234 ]; # SSH, rtl_tcp
+    allowedTCPPorts = [ 22 ]; # SSH
     # mDNS: resolved's .local queries get answered to the multicast group,
     # not back to our address, so conntrack sees them as unsolicited inbound
     allowedUDPPorts = [ 5353 ];
-    # Accept everything arriving over the WireGuard tunnel. WireGuard's
-    # cryptokey routing already drops packets whose source isn't in the
-    # peer's allowedIPs, so this trusts exactly the homelab subnets.
-    trustedInterfaces = [ "wg0" ];
   };
 }

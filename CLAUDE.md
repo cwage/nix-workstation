@@ -1,19 +1,25 @@
 # NixOS Workstation - Project Guide
 
 ## Goal
-This repo is a **temporary standalone** NixOS config for the ThinkPad, migrated from the Ansible-based setup at ~/git/cwage/thinkpad. The primary goal is to eventually fold this into the **homelab monorepo** (https://github.com/cwage/homelab) per https://github.com/cwage/homelab/issues/133, where it will coexist alongside Proxmox VM configs, with hosts like `thinkpad/` and `workstation/` using Home Manager for user-level config.
+This repo is a **temporary standalone** NixOS config for cwage's laptops, migrated from the Ansible-based setup at ~/git/cwage/thinkpad. The primary goal is to eventually fold this into the **homelab monorepo** (https://github.com/cwage/homelab) per https://github.com/cwage/homelab/issues/133, where it will coexist alongside Proxmox VM configs, with hosts like `thinkpad/` and `workstation/` using Home Manager for user-level config.
 
-Everything done here should be structured with that integration in mind — keep configs modular, avoid hard-coding thinkpad-specific assumptions where possible, and follow the target structure outlined in the homelab issue.
+Everything done here should be structured with that integration in mind — keep configs modular, avoid hard-coding host-specific assumptions where possible, and follow the target structure outlined in the homelab issue.
+
+## Hosts
+- `darterpro` — System76 Darter Pro (darp11-b). Current daily machine; Smallstep work laptop.
+- `macbookpro` — MacBookPro16,1 (Apple T2), dual-boots Ubuntu.
+- `thinkpad` — ThinkPad T580. Dead hardware; config kept for reference.
 
 ## Build & Deploy
 ```bash
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 ## Architecture
-- `flake.nix` — Entry point, defines inputs (nixpkgs, home-manager, dotfiles)
-- `hosts/thinkpad/` — Host-specific config (configuration.nix, hardware-configuration.nix)
-- Dotfiles managed via a separate flake at ~/git/cwage/dotfiles, imported as a Home Manager module
+- `flake.nix` — Entry point, defines inputs (nixpkgs, home-manager, dotfiles) and one `mkHost` entry per machine
+- `hosts/<host>/` — Host-specific config (default.nix, configuration.nix, hardware-configuration.nix)
+- `hosts/common/` — `default.nix` is the shared desktop every host imports. Optional feature sets are sibling modules imported per host: `homelab.nix` (WireGuard + NFS), `gaming.nix`, `sdr.nix`, `android.nix`. Put new host-agnostic-but-optional things in their own module here rather than growing `default.nix`.
+- Dotfiles managed via a separate flake at ~/git/cwage/dotfiles, imported as a Home Manager module. It selects `.Xresources.<hostname>` / `.xsession.<hostname>` by hostname, so **every new host needs those two files added there**.
 
 ## Migration Notes (from ansible)
 - **No music production.** The old ansible config had JACK/ardour/fluidsynth for audio production — this is no longer a goal. Standard desktop audio (pipewire + pulse + alsa) is sufficient.
@@ -35,15 +41,15 @@ nix flake update nixpkgs-unstable
 nix flake update nixpkgs
 
 # Then rebuild to apply
-sudo nixos-rebuild switch --flake .#thinkpad
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 Nothing changes on your running system until you rebuild. If something breaks after a rebuild:
 ```bash
-sudo nixos-rebuild switch --flake .#thinkpad --rollback
+sudo nixos-rebuild switch --flake .#<host> --rollback
 ```
 
-The `--flake .#thinkpad` is **required** even for rollback. Without it,
+The `--flake .#<host>` is **required** even for rollback. Without it,
 `nixos-rebuild` falls through to the legacy `<nixpkgs/nixos>` NIX_PATH lookup
 (which this flake-based setup doesn't have configured) and errors out *before*
 it ever reaches the rollback logic. The rollback itself doesn't rebuild
