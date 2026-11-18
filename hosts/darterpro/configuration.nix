@@ -10,7 +10,8 @@
 #     intel_vpu (enabled by the generated hardware scan)
 #   - Wi-Fi 7 BE200 + Intel BT on iwlwifi/ibt, redistributable firmware comes
 #     in via not-detected.nix
-#   - ALC245 analog audio through SOF (snd_sof_pci_intel_mtl)
+#   - ALC245 analog audio on legacy HDA (snd_hda_intel), not SOF; the
+#     headphone jack's plug sensor is dead, see the audio section below
 #   - System76 Open Firmware (coreboot), system76_acpi is in-tree and provides
 #     the airplane + kbd_backlight LEDs
 #   - Backlight is acpi_video0 only; there is no intel_backlight node under
@@ -178,6 +179,36 @@
      KEYBOARD_KEY_3a=leftctrl
      KEYBOARD_KEY_29=esc
      KEYBOARD_KEY_01=grave
+  '';
+
+  # Headphone jack: the plug sensor on this unit never fires. Pin 0x21 reads
+  # GET_PIN_SENSE = 0x0 with known-good headphones fully seated, yet audio
+  # out of the jack works. With the sensor stuck "unplugged", WirePlumber
+  # marks the Headphones port unavailable and refuses to make the card the
+  # default sink, so apps (Brave etc.) silently get no output at all.
+  #
+  # Fix: a HDA "early patch" (Documentation/sound/hd-audio/notes.rst) that
+  # sets the "no presence detect" misc bit on the headphone pin's default
+  # config (0x04211020 -> 0x04211120) — the same trick the kernel's own
+  # System76 quirk uses for the headset mic on pin 0x19. The port then shows
+  # as availability-unknown: selectable and default-able, but switching
+  # between Speakers and Headphones is manual (pavucontrol Port dropdown),
+  # and WirePlumber remembers the choice across reboots.
+  #
+  # Codec line = vendor id, subsystem id, codec address
+  # (/sys/class/sound/hwC0D0/{vendor_id,subsystem_id}). Remove this whole
+  # block if the jack is ever repaired/replaced and detection works again.
+  hardware.firmware = [
+    (pkgs.writeTextDir "lib/firmware/darterpro-hda-jack.fw" ''
+      [codec]
+      0x10ec0245 0x1558a743 0
+
+      [pincfg]
+      0x21 0x04211120
+    '')
+  ];
+  boot.extraModprobeConfig = ''
+    options snd-hda-intel patch=darterpro-hda-jack.fw
   '';
 
   # Trackpad: ignore it while typing, and switch it off entirely when an
