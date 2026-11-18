@@ -203,6 +203,10 @@ ambiguity about which config is live.
 ## Not set up here (by choice)
 
 - `gaming.nix`, `sdr.nix`, `android.nix` — not imported on this host.
-- The `cwage` account uses the **work** dotfiles profile, so `~/.ssh/config`
-  and `~/.gitconfig.local` are hand-maintained (leaving room for
-  `step ssh config`). Same arrangement as macbookpro.
+- The `cwage` account uses the **work** dotfiles profile, so
+  `~/.gitconfig.local` is hand-maintained. `~/.ssh/config` is a plain mutable
+  file that `step ssh config` owns. Home Manager only links
+  `~/.ssh/config.d/personal` and appends `Include config.d/*` to the end of
+  `~/.ssh/config` if it isn't there (`dotfiles.ssh.personalHosts`), so the
+  personal hosts work alongside whatever step writes. Same arrangement as
+  macbookpro.
